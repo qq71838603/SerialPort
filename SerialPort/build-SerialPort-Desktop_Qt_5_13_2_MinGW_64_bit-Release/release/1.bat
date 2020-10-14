@@ -1,1 +1,0 @@
-D:\Qt\Qt5.13.2\5.13.2\mingw73_64\bin\windeployqt.exe SerialPort.exe

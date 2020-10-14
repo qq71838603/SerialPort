@@ -221,29 +221,57 @@ void MainWindow::recvMsg()
 
 void MainWindow::on_open_xiebo_clicked()
 {
+
+    int checknum = 0;
+
     //从UI中获取流水号
     QString a = ui->DI3->text();
 
-    QStringList listdisplay = a.split(" ");
+    //去除空格
+    a = a.remove(QRegExp("\\s"));
 
-    //将流水号转为整型,用于校验
-    int a_chk = listdisplay[0].toInt(nullptr,16);
-    int b_chk = listdisplay[1].toInt(nullptr,16);
-    int c_chk = listdisplay[2].toInt(nullptr,16);
-    int d_chk = listdisplay[3].toInt(nullptr,16);
-    int e_chk = listdisplay[4].toInt(nullptr,16);
-    int f_chk = listdisplay[5].toInt(nullptr,16);
+    QString checkmsg = "68"+a+"68600535dff1ffdd";
+
+    //进行CRC8校验
+    QString recvtempStr = checkmsg;
+
+    //将要校验的字符串字母转为大写,用于下一步的ASC2BCD()
+    recvtempStr = recvtempStr.toUpper();
+
+    //qDebug()<<"recvtempStr is:"<<recvtempStr;
+
+    int Strlength = recvtempStr.length();
+    QByteArray recvba = recvtempStr.toLatin1();
+    //qDebug()<<"ba.data() is:"<<recvba.data();
+
+    //保存用于校验的地址
+    unsigned char recvc2[300] = {0};
+    //转换BCD码用于校验
+    ASC2BCD(recvc2,recvba.data(),Strlength);
+
+    for (int i = 0; i< Strlength/2;i++)
+    {
+        //qDebug()<<"recvc2[i] is:"<<recvc2[i];
+        checknum += recvc2[i];
+    }
 
     //校验,将校验码前的字段相加取模256
-    int checknum = (0x68 + a_chk + b_chk + c_chk + d_chk + e_chk + f_chk + 0x68 + 0x60 + 0x05 + 0x35 + 0xdf + 0xf1 + 0xff + 0xdd) % 256 ;
+    //qDebug()<<"checknum is:"<<checknum;
+    checknum = checknum % 256 ;
 
     //再将得到的校验码转换为16进制显示的字符串
-    QString check = tr("%1").arg(checknum);
-    check = QString::number((check.toInt(nullptr,10)),16);
+    QString check = QString("%1").arg(checknum,2,16,QLatin1Char('0'));
+
+    //报文中的流水号需要倒序输入,转为BCD码后反转并转为16进制字符串,不足2位则补0
+    QString w1 =  QString("%1").arg(recvc2[6],2,16,QLatin1Char('0'));
+    QString w2 =  QString("%1").arg(recvc2[5],2,16,QLatin1Char('0'));
+    QString w3 =  QString("%1").arg(recvc2[4],2,16,QLatin1Char('0'));
+    QString w4 =  QString("%1").arg(recvc2[3],2,16,QLatin1Char('0'));
+    QString w5 =  QString("%1").arg(recvc2[2],2,16,QLatin1Char('0'));
+    QString w6 =  QString("%1").arg(recvc2[1],2,16,QLatin1Char('0'));
 
     //组装报文
-    QString msg = "68 "+ listdisplay[0] + " "+ listdisplay[1] + " " + listdisplay[2] + " " + listdisplay[3] + " " + listdisplay[4]
-            + " " +listdisplay[5] + " "  + "68 60 05 35 df f1 ff dd "+ check + " " + "16";
+    QString msg = "68"+ w1 + w2 + w3 + w4 + w5 + w6 + "68600535dff1ffdd"+ check + "16";
 
     //将组装好的报文打印在屏幕上
     ui->recvData_2->setText(msg);
@@ -256,34 +284,58 @@ void MainWindow::on_open_xiebo_clicked()
 
     //发送组装的报文
     sendMsg(msg);
-
 }
 
 void MainWindow::on_close_xiebo_clicked()
 {
+    int checknum = 0;
+
     //从UI中获取流水号
     QString a = ui->DI3->text();
+    //去除空格
+    a = a.remove(QRegExp("\\s"));
+    QString checkmsg = "68"+a+"68600535dff1ff88";
 
-    QStringList listdisplay = a.split(" ");
+    //进行CRC8校验
+    QString recvtempStr = checkmsg;
 
-    //将流水号转为整型,用于校验
-    int a_chk = listdisplay[0].toInt(nullptr,16);
-    int b_chk = listdisplay[1].toInt(nullptr,16);
-    int c_chk = listdisplay[2].toInt(nullptr,16);
-    int d_chk = listdisplay[3].toInt(nullptr,16);
-    int e_chk = listdisplay[4].toInt(nullptr,16);
-    int f_chk = listdisplay[5].toInt(nullptr,16);
+    //将要校验的字符串字母转为大写,用于下一步的ASC2BCD()
+    recvtempStr = recvtempStr.toUpper();
+
+    //qDebug()<<"recvtempStr is:"<<recvtempStr;
+
+    int Strlength = recvtempStr.length();
+    QByteArray recvba = recvtempStr.toLatin1();
+    //qDebug()<<"ba.data() is:"<<recvba.data();
+
+    //保存用于校验的地址
+    unsigned char recvc2[300] = {0};
+    //转换BCD码用于校验
+    ASC2BCD(recvc2,recvba.data(),Strlength);
+
+    for (int i = 0; i< Strlength/2;i++)
+    {
+        //qDebug()<<"recvc2[i] is:"<<recvc2[i];
+        checknum += recvc2[i];
+    }
 
     //校验,将校验码前的字段相加取模256
-    int checknum = (0x68 + a_chk + b_chk + c_chk + d_chk + e_chk + f_chk + 0x68 + 0x60 + 0x05 + 0x35 + 0xdf + 0xf1 + 0xff + 0x88) % 256 ;
+    //qDebug()<<"checknum is:"<<checknum;
+    checknum = checknum % 256 ;
 
     //再将得到的校验码转换为16进制显示的字符串
-    QString check = tr("%1").arg(checknum);
-    check = QString::number((check.toInt(nullptr,10)),16);
+    QString check = QString("%1").arg(checknum,2,16,QLatin1Char('0'));
+
+    //报文中的流水号需要倒序输入,转为BCD码后反转并转为16进制字符串,不足2位则补0
+    QString w1 =  QString("%1").arg(recvc2[6],2,16,QLatin1Char('0'));
+    QString w2 =  QString("%1").arg(recvc2[5],2,16,QLatin1Char('0'));
+    QString w3 =  QString("%1").arg(recvc2[4],2,16,QLatin1Char('0'));
+    QString w4 =  QString("%1").arg(recvc2[3],2,16,QLatin1Char('0'));
+    QString w5 =  QString("%1").arg(recvc2[2],2,16,QLatin1Char('0'));
+    QString w6 =  QString("%1").arg(recvc2[1],2,16,QLatin1Char('0'));
 
     //组装报文
-    QString msg = "68 "+ listdisplay[0] + " "+ listdisplay[1] + " " + listdisplay[2] + " " + listdisplay[3] + " " + listdisplay[4]
-            + " " +listdisplay[5] + " "  + "68 60 05 35 df f1 ff 88 "+ check + " " + "16";
+    QString msg = "68"+ w1 + w2 + w3 + w4 + w5 + w6 + "68600535dff1ff88"+ check + "16";
 
     //将组装好的报文打印在屏幕上
     ui->recvData_2->setText(msg);
@@ -296,7 +348,6 @@ void MainWindow::on_close_xiebo_clicked()
 
     //发送组装的报文
     sendMsg(msg);
-
 }
 
 

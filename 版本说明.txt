@@ -1,8 +1,0 @@
-串口工具,用于开启和关闭谐波检测
-打开谐波监测 68 xx xx xx xx xx xx 68 60 05 35 DF F1 FF DD xx 16 
-关闭谐波监测68 xx xx xx xx xx xx 68 60 05 35 DF F1 FF 88 xx 16 
-
-SerialPortV1.0	完成基本界面和功能,流水号只写了4位
-SerialPortV1.1	流水号修改为6位,优化界面,流水号在一个输入框输入,需要输入空格
-SerialPortV1.2	流水号改为不需要输入空格的方式输入
-SerialPortV1.3  
